@@ -1,0 +1,32 @@
+name: GPT Translate per Commit
+
+on:
+  push:
+    branches:
+    - localize
+    paths:
+    - 'en/**.md'
+
+jobs:
+  gpt_translate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository with two latest commits
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+
+    - name: get changed files name
+      id: changed_files
+      run: |
+        echo "files=$(git diff --name-only HEAD^ HEAD | grep '\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+    - name: Run GPT Translate
+      uses: 3ru/gpt-translate@v1.1.5
+      with:
+        apikey: ${{ secrets.OPENAI_API_KEY }}
+        model: "gpt-4"
+        inputFiles: ${{ steps.changed_files.outputs.files }}
+        outputFiles: 'zh/**/*.md'
+        languages: 'Simplified-Chinese'
